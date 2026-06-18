@@ -7,33 +7,28 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// 🔥 MIDDLEWARE
+app.use(cors({
+  origin: "*"
+}));
+
 app.use(express.json());
 
-// Routes
-const authRoutes = require("./routes/authRoutes");
-const taskRoutes = require("./routes/taskRoutes");
-
-app.use("/api/auth", authRoutes);
-app.use("/api/tasks", taskRoutes);
-
-// Home Route
+// 🔥 TEST ROUTE
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.json({ message: "API Running Successfully 🚀" });
 });
 
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB Connected");
-  })
-  .catch((err) => {
-    console.log("MongoDB Error:", err.message);
-  });
+// 🔥 ROUTES
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/tasks", require("./routes/taskRoutes"));
 
-// Start Server
+// 🔥 DATABASE CONNECTION
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch((err) => console.log("MongoDB Error:", err));
+
+// 🔥 SERVER START
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
