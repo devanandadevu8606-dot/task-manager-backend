@@ -1,36 +1,44 @@
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const mongoose = require("mongoose");
-
-dotenv.config();
+const { errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
 
-// 🔥 MIDDLEWARE
-app.use(cors({
-  origin: "*"
-}));
+// CORS configuration - allow frontend to call API
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Whitelist for production (supports multiple domains separated by comma)
+    const whitelist = (process.env.CLIENT_URL || "*").split(",").map(url => url.trim());
+    
+    if (whitelist.includes("*") || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Rejected origin: ${origin}`);
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// 🔥 TEST ROUTE
+// Health / test route
 app.get("/", (req, res) => {
   res.json({ message: "API Running Successfully 🚀" });
 });
 
-// 🔥 ROUTES
+// Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/tasks", require("./routes/taskRoutes"));
 
-// 🔥 DATABASE CONNECTION
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected ✅"))
-  .catch((err) => console.log("MongoDB Error:", err));
+// Global error handler
+app.use(errorHandler);
 
-// 🔥 SERVER START
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;

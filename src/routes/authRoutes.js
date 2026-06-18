@@ -1,18 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { registerUser, loginUser } = require('../controllers/authController');
+const authMiddleware = require("../middleware/authMiddleware");
 
 // Define register and login endpoints
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 
-module.exports = router;
-const authMiddleware = require("../middleware/authMiddleware");
-
-// GET USER PROFILE
-router.get("/me", authMiddleware, async (req, res) => {
+// GET USER PROFILE (protected)
+router.get('/me', authMiddleware, async (req, res) => {
   res.json({
     success: true,
     data: req.user,
   });
 });
+
+module.exports = router;
